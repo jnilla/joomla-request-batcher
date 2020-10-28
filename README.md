@@ -75,7 +75,7 @@ Use the debug mode to visualize events to console.
 Jnilla.Joomla.RequestBatcher.setDebug(true);
 ```
 
-Set how often the batches will be send. 6 Seconds by default.
+Set how often the batches will be send. 6 Seconds by default. Set to 0 to disable interval.
 
 ```
 Jnilla.Joomla.RequestBatcher.setBatchInterval(3);
