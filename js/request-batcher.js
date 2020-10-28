@@ -1,12 +1,14 @@
+// Define namespace
 var Jnilla = Jnilla || {};
+Jnilla.Joomla = Jnilla.Joomla || {};
 
-Jnilla.RequestBatcher = (function($){
+Jnilla.Joomla.RequestBatcher = (function($){
 	var isSending = false;
 	var batch = [];
 	var callbacks = [];
 	var callbacksState = [];
 	var serverUrl = '';
-	var interval = 2;
+	var interval = 6;
 	var intervalCount = interval;
 	var debug = false;
 	var requestMark;
@@ -62,7 +64,7 @@ Jnilla.RequestBatcher = (function($){
 				responseMark = numberWithCommas(responseMark);
 				console.log('<--- Response ('+responseMark+'ms)');
 			}
-
+			
 			// Prepare data
 			for(let i in data.data){
 				data.data[i].data.data = JSON.parse(data.data[i].data.data);

@@ -1,9 +1,9 @@
 {
-	"name": "jnilla/joomla-cache-helper",
+	"name": "jnilla/joomla-request-batcher",
 	"type": "library",
-	"description": "Use Joomla cache support fast and easy",
-	"keywords": ["joomla","cache","helper"],
-	"homepage": "https://github.com/jnilla/joomla-cache-helper",
+	"description": "Send and process requests in batches",
+	"keywords": ["joomla","request","batcher"],
+	"homepage": "https://github.com/jnilla/joomla-request-batcher",
 	"license": "MIT",
 	"authors": [
 		{

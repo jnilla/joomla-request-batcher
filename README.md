@@ -1,111 +1,110 @@
-# joomla-cache-helper
+# joomla-request-batcher
 
-Use Joomla cache support fast and easy.
+Send and process requests in batches.
 
-This helper is build on top of the native Joomla cache support. We implemented a simpler API and added few extra features to make the helper practical. 
+Use this tool as an standard way to comunicate your JS code with your server code. 
 
-## Installation
+Send multiple requests in batches to reduce the overhead of sending multiple requests individually.
+
+The batcher collects the requests into a batch (array) and after a period of time the batch is send to the server. The whole process repeats with each interval.
+
+## Installation (Server Side)
 
 Install using Composer:
- 
+
 ```
-$ composer require jnilla/joomla-cache-helper
+$ composer require jnilla/joomla-request-batcher
 ```
- 
+
 Load the library using the Composer autoloader:
 
 ```
 require('vendor/autoload.php');
 ```
 
-## Basic Usage
+## Installation (Client Side)
+
+This library depends on jQuery. Include the file ```request-batcher.js``` after jQuery and before your code. Example:
+
+```
+<script src='jquery.js'></script>
+<script src='request-batcher.js'></script>
+<script src='your-code.js'></script>
+```
+
+## Basic Usage (Server Side)
 
 Declaration:
 
 ```
-use Jnilla\Joomla\CacheHelper as CacheHelper;
+use Jnilla\Joomla\RequestBatcher as RequestBatcher;
 ```
 
-Store data to cache:
+Use the batcher callback to iterate over the batch requests. The batcher only process requests from the batcher client.
 
 ```
-CacheHelper::set('idHere', 'groupNameHere', $data);
+RequestBatcher::callback(function($data){
+	switch ($data->task){ // This serves as controller
+		case 'getSomeData':
+			return 'lorem ipsum'; // Use return to send data back
+			
+		case 'getSomeMoreData':
+			return 'lorem ipsum dolor sit amed';
+			
+		default:
+			return null;
+	}
+});
 ```
 
-Get data from cache:
+## Basic Usage (Client Side)
+
+The batcher can be access through the global variable ```Jnilla``` this is a namespace.
 
 ```
-$response = CacheHelper::get('idHere', 'groupNameHere');
-
-// $response['status'] --> true
-// $response['data'] --> "Some data..."
+Jnilla.Joomla.RequestBatcher
 ```
 
-Cache using callbacks:
+Configure:
+
+Use the debug mode to visualize events to console.
 
 ```
-$data = CacheHelper::callback(
-	'idHere',
-	'groupNameHere',
-	function(){return $externalService->getMessages();}
-	120
+Jnilla.Joomla.RequestBatcher.setDebug(true);
+```
+
+Set how often the batches will be send. 6 Seconds by default.
+
+```
+Jnilla.Joomla.RequestBatcher.setBatchInterval(3);
+```
+
+Set server URL. Current URL by default.
+
+```
+Jnilla.Joomla.RequestBatcher.setServerUrl('?some_api');
+```
+
+Add a request to the batch.
+
+```
+Jnilla.Joomla.RequestBatcher.addRequest(
+	{'task': 'getSomeData'}, // Request data.
+	function(data){ // Callback on server response
+		console.log(data); // data is the response data.
+	}
 );
 ```
- 
-## Example
 
-The most practical way to work with this library is using the ```callback()``` method.
-
-For this example we will demonstrate how to avoid simultaneous calls to an expensive operation.
+Console output:
 
 ```
-$data = CacheHelper::callback(
-	'idHere',
-	'groupNameHere',
-	function(){return $externalService->getMessages();}
-	10,
-	5
-);
-
-printMessages($data['data']);
+Lorem ipsum 
 ```
-
-The ```$externalService``` API object have a request rate limit of 6 calls per minute. The data returned is used to print a list of messages in a website. 
-
-This website have several hundred users and is requested more than 50 times per second. It's clear that cache needs to be implemented to provide performance and prevent simultaneous requests to the external service.
-
-This is how the website will react to the users interaction:
-
-Website is requested for the first time:
-
-* Get data from cache.
-* Cache is invalid.
-* Cache gets flagged as updating.
-* Expensive operation is executed and takes 200ms to finish.
-* Operation result data is stored to cache with a life time of 10 seconds.
-* Return data.
-* Print list of messages.
-
-During the update operation (200ms) the website was requested 10 more times:
-
-* Get data from cache.
-* Cache is flagged as updating.
-* Wait for cache to finish updating.
-* Cache finished updating.
-* Return data.
-* Print list of messages (for each request).
-
-5 seconds later the website was requested 250 times:
-
-* Get data from cache.
-* Cache is valid.
-* Return data.
-* Print list of messages (for each request).
-
-Cache expires after 10 seconds and the process repeats.
-
-The cache life time of 10 seconds ensures the external service is requested no more than 6 times per minute. The timeout of 5 seconds covers most delays that may happen while requesting the external service.
 
 ## License
 
 This project is under the MIT License.
+
+
+

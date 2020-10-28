@@ -36,7 +36,7 @@ class RequestBatcher{
 						'data' => $callback($request->data)
 					)
 				);
-			}catch(\Exception $error) {
+			}catch(\Exception $error){
 				$responses[] = (object)array(
 					'success' => false,
 					'message' => $error->getMessage(),
