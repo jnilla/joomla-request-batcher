@@ -9,9 +9,9 @@ use Joomla\CMS\Factory as JFactory;
 class RequestBatcher{
 	
 	/**
-	 * Iterates over each request from the batch performing a callback
+	 * Iterates over each request from the batch performing a callback for each
 	 *
-	 * @param     callable    $callback    Callable reference
+	 * @param     callable    $callback    Callback reference
 	 *
 	 * @return    void
 	 */
@@ -22,11 +22,11 @@ class RequestBatcher{
 		// Send empty reponse if request is not a RequestBatcher request
 		if(!$input->get('RequestBatcher', false)) RequestBatcher::sendResponse(null);
 		
-		$batch = json_decode($input->get('data', '', 'json'));
+		$requests = json_decode($input->get('data', '', 'json'));
 		$responses = array();
 		
 		// Iterate over each request
-		foreach($batch as $request){
+		foreach($requests as $request){
 			try{
 				$responses[] = (object)array(
 					'success' => true,

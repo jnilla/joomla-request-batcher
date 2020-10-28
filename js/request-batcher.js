@@ -58,13 +58,18 @@ Jnilla.Joomla.RequestBatcher = (function($){
 				'RequestBatcher': true,
 				'data': JSON.stringify(batch), 
 			},
-		}).then(function(data) {
+		}).always(function(data){
 			if(debug){
 				responseMark = new Date().getTime() - requestMark;
 				responseMark = numberWithCommas(responseMark);
 				console.log('<--- Response ('+responseMark+'ms)');
 			}
 			
+			// Reset
+			callbacksState = [];
+			isSending = false;
+			intervalCount = 0;
+		}).done(function(data){
 			// Prepare data
 			for(let i in data.data){
 				data.data[i].data.data = JSON.parse(data.data[i].data.data);
@@ -74,17 +79,14 @@ Jnilla.Joomla.RequestBatcher = (function($){
 			
 			// Perform callbacks
 			for(let i in data.data){
+				requestId = data.data[i].data.id;
+				requestData = data.data[i].data.data;
 				try{
-					requestId = data.data[i].data.id;
-					requestData = data.data[i].data.data;
-					if(typeof callbacksState[requestId] == 'function') callbacksState[requestId](requestData);
+					if(typeof callbacksState[requestId] == 'function'){
+						callbacksState[requestId](requestData);
+					}
 				}finally{}
 			}
-			
-			// Resets
-			callbacksState = [];
-			isSending = false;
-			intervalCount = 0;
 		});
 		
 		// Store callbacks state

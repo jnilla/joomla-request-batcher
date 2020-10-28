@@ -43,13 +43,15 @@ use Jnilla\Joomla\RequestBatcher as RequestBatcher;
 Use the batcher callback to iterate over the batch requests. The batcher only process requests from the batcher client.
 
 ```
-RequestBatcher::callback(function($data){
-	switch ($data->task){ // This serves as controller
+RequestBatcher::callback(function($requestData){ // Callback for each request
+	switch ($requestData->task){ // This serves as controller
 		case 'getSomeData':
-			return 'lorem ipsum'; // Use return to send data back
+			$response = 'lorem ipsum'; // Some operation here
+			return $response; // Add response to the response batch
 			
 		case 'getSomeMoreData':
-			return 'lorem ipsum dolor sit amed';
+			$response = 'lorem ipsum dolor sit amed';
+			return $response;
 			
 		default:
 			return null;
@@ -89,10 +91,10 @@ Add a request to the batch.
 
 ```
 Jnilla.Joomla.RequestBatcher.addRequest(
-	{'task': 'getSomeData'}, // Request data.
-	function(data){ // Callback on server response
-		console.log(data); // data is the response data.
-	}
+	// Request
+	{'task': 'getSomeData'}, 
+	// Response
+	function(responseData){console.log(responseData);}
 );
 ```
 
