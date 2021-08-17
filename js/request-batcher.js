@@ -6,14 +6,14 @@ Jnilla.Joomla.RequestBatcher = (function($){
 	var isSending = false;
 	var batch = [];
 	var callbacks = [];
-	var callbacksState = [];
+	var callbacks2 = [];
 	var serverUrl = '';
 	var interval = 6;
 	var intervalCount = interval;
 	var debug = false;
 	var requestMark;
 	var responseMark;
-	
+
 	/**
 	 * Set interval to send each batch automatically
 	 *
@@ -22,20 +22,20 @@ Jnilla.Joomla.RequestBatcher = (function($){
 	setInterval(function(){
 		// Exit if interval is 0
 		if(interval <= 0) return;
-		
+
 		// Exit if batch is empty
 		if(!batch.length) return;
-		
+
 		// Exit if request is being send
 		if(isSending) return;
-		
+
 		intervalCount++
 		if(intervalCount >= interval){
 			intervalCount = 0;
 			sendBatch();
 		}
 	}, 1000);
-	
+
 	/**
 	 * Send the request with the batch data
 	 *
@@ -45,21 +45,24 @@ Jnilla.Joomla.RequestBatcher = (function($){
 		// Exit if request is being send
 		if(isSending) return;
 		isSending = true;
-		
+
+		// Store the callbacks of this batch to a copy
+		callbacks2 = callbacks;
+
 		if(debug){
 			console.log('Requesting --->', );
 			console.log(batch);
 			requestMark = new Date().getTime();
 		}
-		
+
 		// Send request
 		$.ajax({
-			'url': serverUrl, 
-			'cache': false, 
+			'url': serverUrl,
+			'cache': false,
 			'method': 'post',
 			'data': {
 				'RequestBatcher': true,
-				'data': JSON.stringify(batch), 
+				'data': JSON.stringify(batch),
 			},
 		}).always(function(data){
 			if(debug){
@@ -67,9 +70,8 @@ Jnilla.Joomla.RequestBatcher = (function($){
 				responseMark = numberWithCommas(responseMark);
 				console.log('<--- Response ('+responseMark+'ms)');
 			}
-			
+
 			// Reset
-			callbacksState = [];
 			isSending = false;
 			intervalCount = 0;
 		}).done(function(data){
@@ -77,29 +79,26 @@ Jnilla.Joomla.RequestBatcher = (function($){
 			for(let i in data.data){
 				data.data[i].data.data = JSON.parse(data.data[i].data.data);
 			}
-			
+
 			if(debug) console.log(data);
-			
-			// Perform callbacks
+
+			// Execute callbacks
 			for(let i in data.data){
 				requestId = data.data[i].data.id;
 				requestData = data.data[i].data.data;
 				try{
-					if(typeof callbacksState[requestId] == 'function'){
-						callbacksState[requestId](requestData);
+					if(typeof callbacks2[requestId] == 'function'){
+						callbacks2[requestId](requestData);
 					}
 				}finally{}
 			}
 		});
-		
-		// Store callbacks state
-		callbacksState = callbacks;
-		
+
 		// Reset
 		batch = [];
 		callbacks = [];
 	}
-	
+
 	/**
 	 * Generates a hash code
 	 *
@@ -110,7 +109,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 	function hashCode(s){
 	  return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 	}
-	
+
 	/**
 	 * Generates a hash code
 	 *
@@ -121,7 +120,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 	function numberWithCommas(x) {
 		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
-	
+
 	// Public members
 	return{
 		/**
@@ -137,7 +136,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 			var request = {};
 			request.id = hashCode((typeof data)+JSON.stringify(data));
 			request.data = data;
-			
+
 			// Check if request already exist
 			for(let i = 0; i < batch.length; i++){
 				if(batch[i].id == request.id){
@@ -145,20 +144,20 @@ Jnilla.Joomla.RequestBatcher = (function($){
 					return;
 				}
 			}
-			
+
 			// Add request to batch
 			batch.push(request);
-			
+
 			// Register callback
 			if(typeof callback == 'function'){
 				callbacks[request.id] = callback;
 			}
-			
+
 			if(debug) console.log('Request added to batch: ', request);
-			
+
 			if(sendNow) sendBatch();
 		},
-		
+
 		/**
 		 * Sets the server URl that will receive our requests
 		 *
@@ -169,7 +168,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 		setServerUrl: function(url = ''){
 			serverUrl = url;
 		},
-		
+
 		/**
 		 * Sets the interval in where the batches will be send automatically
 		 *
@@ -181,7 +180,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 			intervalCount = seconds;
 			interval = seconds;
 		},
-		
+
 		/**
 		 * Sets the debug mode to display events to console
 		 *
@@ -192,7 +191,8 @@ Jnilla.Joomla.RequestBatcher = (function($){
 		setDebug: function(flag){
 			debug = flag;
 		},
-		
+
 	}
 })(jQuery);
+
 
