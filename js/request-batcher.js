@@ -75,10 +75,11 @@ Jnilla.Joomla.RequestBatcher = (function($){
 			isSending = false;
 			intervalCount = 0;
 		}).done(function(data){
-			// Prepare data
-			for(let i in data.data){
-				data.data[i].data.data = JSON.parse(data.data[i].data.data);
-			}
+			// data: The server JSON repsonse structure
+			// data.data: A list of responses from the batcher
+			// data.data[i]: One response JSON response structure
+			// data.data[i].data.id: One response id
+			// data.data[i].data.data: One response data
 
 			if(debug) console.log(data);
 
@@ -124,17 +125,20 @@ Jnilla.Joomla.RequestBatcher = (function($){
 	// Public members
 	return{
 		/**
-		 * Adds request data to the batch
+		 * Adds a request to the actual batch
 		 *
-		 * @param     mixed       data        Data to send
+		 * @param     string      data        Data to send (Must be string type)
 		 * @param     callable    callback    Callable reference
-		 * @param     boolean     sendNow     Set to true to send request ASAP
+		 * @param     boolean     sendNow     If true sends the current batch inmediately
 		 *
-		 * @return    string    Hash code
+		 * @return    void
 		 */
 		addRequest : function(data, callback = null, sendNow = false){
+			// Check if data is string type
+			if(typeof data !== 'string') throw "Argument 'data' must be string type";
+
 			var request = {};
-			request.id = hashCode((typeof data)+JSON.stringify(data));
+			request.id = hashCode(data); // Prevents to add duplicates
 			request.data = data;
 
 			// Check if request already exist
@@ -153,13 +157,13 @@ Jnilla.Joomla.RequestBatcher = (function($){
 				callbacks[request.id] = callback;
 			}
 
-			if(debug) console.log('Request added to batch: ', request);
+			if(debug) console.log('Request added to the batch: ', request);
 
 			if(sendNow) sendBatch();
 		},
 
 		/**
-		 * Sets the server URl that will receive our requests
+		 * Sets the server URl to sent the batches to
 		 *
 		 * @param     string    url    Server URL
 		 *
@@ -170,7 +174,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 		},
 
 		/**
-		 * Sets the interval in where the batches will be send automatically
+		 * Sets the interval in where the batches will be send to the server automatically
 		 *
 		 * @param     integer    sseconds    Set to 0 to disable interval
 		 *
@@ -182,7 +186,7 @@ Jnilla.Joomla.RequestBatcher = (function($){
 		},
 
 		/**
-		 * Sets the debug mode to display events to console
+		 * Sets the debug mode
 		 *
 		 * @param     boolean    flag    Set to true to enable
 		 *
